@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="CallGuard: an explainable banking call scam detection prototype with contextual warnings and a local number watchlist.">
+  <meta name="theme-color" content="#142644"><meta name="referrer" content="no-referrer">
+  <title>CallGuard — Bank Call Safety</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to workspace</a>
+  <aside class="sidebar">
+    <a class="brand" href="#analyzer"><img src="./favicon.svg" alt="" width="38" height="38"><span>CallGuard<small>BANK CALL SAFETY</small></span></a>
+    <div class="nav-label">WORKSPACE</div>
+    <nav aria-label="Main navigation">
+      <button class="nav-button active" data-view="analyzer" aria-current="page"><span aria-hidden="true">◉</span> Call analyzer</button>
+      <button class="nav-button" data-view="watchlist"><span aria-hidden="true">▤</span> Number watchlist</button>
+      <button class="nav-button" data-view="rules"><span aria-hidden="true">◈</span> Detection rules</button>
+      <button class="nav-button" data-view="about"><span aria-hidden="true">ⓘ</span> Project guide</button>
+    </nav>
+    <div class="sidebar-bottom"><span class="prototype">COLLEGE PROJECT</span><p>Trust the evidence.<br>Question the request.</p><small>Rules, not a fraud probability.<br>Every warning has a reason.</small></div>
+  </aside>
+  <div class="app-shell">
+    <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong id="page-name">Call analyzer</strong></div><span class="private-badge">Local analysis <span aria-hidden="true">↗</span></span></header>
+    <main id="main" tabindex="-1">
+      <section id="view-analyzer" class="view">
+        <div class="page-heading"><div><div class="eyebrow">LISTEN. CHECK. PAUSE.</div><h1>A legitimate voice.<br>A suspicious request?</h1><p>Assess the caller’s requests, context, and number—together.</p></div><button id="reset" class="button secondary">↺ <span>New analysis</span></button></div>
+        <div class="scope-note"><span class="note-icon" aria-hidden="true">i</span><span><strong>Call safety prototype.</strong> Text stays in this tab. Microphone mode may use your browser’s speech service. No real phone calls are intercepted or blocked.</span></div>
+        <div class="analysis-grid">
+          <div class="input-column">
+            <section class="card call-card" aria-labelledby="call-heading">
+              <div class="card-heading"><h2 id="call-heading">Call workspace</h2><span id="mode-badge" class="pill neutral">Sample transcript</span></div>
+              <div class="number-row"><div class="field grow"><label for="caller-number">Caller’s number <span class="optional">optional</span></label><input id="caller-number" type="tel" maxlength="32" placeholder="+91 … or international number" autocomplete="off"><small id="number-hint">Indian mobiles accepted without +91. Use a country code for other numbers.</small></div></div>
+              <div class="reputation-strip" id="reputation-strip"><span class="reputation-symbol" aria-hidden="true">?</span><div><strong id="reputation-title">Number not provided</strong><span id="reputation-detail">A number check cannot establish caller identity.</span></div></div>
+              <div class="transcript-heading"><label for="transcript">Conversation transcript</label><span id="char-count">0 / 40,000</span></div>
+              <textarea id="transcript" rows="10" maxlength="40000" spellcheck="false" placeholder="Caller: I am calling from your bank…&#10;Customer: What is this about?&#10;&#10;Paste a transcript, try a scenario, or use the microphone."></textarea>
+              <p class="field-help">Use <strong>Caller:</strong> and <strong>Customer:</strong> labels. Unlabelled text starts as caller speech; following lines keep the last speaker.</p>
+              <div class="toolbar"><button id="analyze" class="button primary">Analyze call <span aria-hidden="true">→</span></button><label class="button secondary upload-label" for="import-file">Import .txt<input id="import-file" type="file" accept=".txt,text/plain"></label><button id="mic-open" class="button icon-button" aria-label="Open microphone transcription">🎙 <span>Microphone</span></button></div>
+              <div id="input-error" class="error-message" role="alert" hidden></div>
+              <div id="mic-panel" class="mic-panel" hidden>
+                <h3>Microphone transcription</h3><p>This listens to nearby speech, not the other side of an ordinary phone call. Your browser may send audio to its speech provider. Use only with the speakers’ permission. No audio recording is stored by CallGuard.</p>
+                <label for="speech-language">Recognition language</label><select id="speech-language"><option value="en-IN">English / Hinglish (India)</option><option value="hi-IN">Hindi (India)</option></select>
+                <div class="mic-actions"><button id="mic-start" class="button primary">Allow speech service & start</button><button id="mic-stop" class="button secondary" disabled>Stop microphone</button></div>
+                <p id="mic-status" role="status">Microphone is off.</p><p id="interim-text" class="muted"></p>
+              </div>
+            </section>
+            <section class="card scenario-card" aria-labelledby="scenario-heading">
+              <div class="card-heading"><h2 id="scenario-heading">Put it to the test</h2><span id="scenario-count" class="subtle-label"></span></div>
+              <label class="sr-only" for="scenario-select">Choose a call scenario</label><select id="scenario-select"></select>
+              <p id="scenario-description"></p><div class="scenario-bottom"><span id="scenario-label" class="pill neutral"></span><div><button id="load-scenario" class="text-button">Load full call</button><button id="play-scenario" class="button secondary">▶ Play call</button></div></div>
+              <div id="simulation-status" class="simulation-status" role="status">Ready to simulate. No call will be placed.</div>
+            </section>
+          </div>
+          <div class="result-column">
+            <section id="assessment" class="assessment" data-level="unverified" aria-labelledby="assessment-heading">
+              <div class="assessment-top"><span class="eyebrow">CALL ASSESSMENT</span><span id="finding-count" class="pill">0 indicators</span></div>
+              <div class="assessment-icon" aria-hidden="true" id="risk-icon">?</div><h2 id="assessment-heading">No listed warning detected</h2><p id="next-step"></p>
+              <div id="combination-note" class="combination" hidden></div>
+              <div class="assessment-footer"><strong id="risk-caption">Unverified ≠ safe</strong><span>Explainable rules · no probability score</span></div>
+            </section>
+            <div id="assessment-announcement" class="sr-only" role="status" aria-live="polite"></div>
+            <section class="card evidence-card" aria-labelledby="evidence-heading"><div class="card-heading"><h2 id="evidence-heading">Why this result?</h2><button id="export-report" class="text-button">Export report ↓</button></div><div id="findings"></div></section>
+            <section class="next-actions"><h3>Pause before you act</h3><ol><li>Keep your OTP, PIN, and passwords private.</li><li>End the call if the request seems suspicious.</li><li>Open your bank app independently, or use the number printed on your card. Verify the specific request.</li></ol><p>A caller knowing your details does not prove the request is genuine.</p></section>
+          </div>
+        </div>
+      </section>
+      <section id="view-watchlist" class="view" hidden>
+        <div class="page-heading"><div><div class="eyebrow">AN EXTRA SIGNAL</div><h1>Number watchlist</h1><p>Check local reports before trusting an unexpected call.</p></div></div>
+        <div class="scope-note"><span class="note-icon">i</span><span><strong>No live scam-number database is connected.</strong> Sample entries are fictional. Your reports stay on this browser and are unverified. Caller IDs can be spoofed.</span></div>
+        <div class="watch-grid"><section class="card"><h2>Check a number</h2><form id="lookup-form"><label for="lookup-phone">Phone number</label><div class="inline-input"><input id="lookup-phone" type="tel" maxlength="32" placeholder="+91 …"><button class="button primary" type="submit">Check</button></div></form><div id="lookup-result" class="lookup-result" role="status">Enter a number to search this device’s watchlist.</div><label class="checkbox-label"><input id="include-demo" type="checkbox" checked> Include clearly labelled sample numbers</label><p class="field-help">Sample: +1 202 555 0101. An unknown or unlisted number is not automatically safe.</p></section>
+          <section class="card"><h2>Add a local suspicion report</h2><form id="report-form"><label for="report-phone">Phone number</label><input id="report-phone" type="tel" maxlength="32" required placeholder="Include the country code"><label for="report-reason">Reason for suspicion</label><select id="report-reason"><option>Asked for OTP or PIN</option><option>Suspicious transfer request</option><option>Remote access or app installation</option><option>Threat, impersonation, or secrecy</option><option>Suspicious link or KYC request</option><option>Other suspicious request</option></select><label for="report-note">Short note <span class="optional">optional · avoid personal details</span></label><input id="report-note" maxlength="160" placeholder="What did the caller ask you to do?"><button type="submit" class="button primary">Save on this browser</button><p class="field-help">Expires after 90 days. This does not submit a complaint or add anyone to a public blacklist.</p><p id="report-error" class="error-message" role="alert" hidden></p></form></section></div>
+        <section class="card watch-table-card"><div class="card-heading"><h2>Available number records</h2><span id="watch-count" class="subtle-label"></span></div><div class="table-scroll"><table><thead><tr><th>Number</th><th>Source</th><th>Reason</th><th>Expires</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="watch-table"></tbody></table></div></section>
+      </section>
+      <section id="view-rules" class="view" hidden>
+        <div class="page-heading"><div><div class="eyebrow">TRANSPARENT BY DESIGN</div><h1>Every warning has a reason.</h1><p>Inspect the conditions, examples, and limits behind the assessment.</p></div></div>
+        <div class="rules-overview"><div><strong id="rule-total"></strong><span>conversation rules</span></div><div><strong>3</strong><span>additional checks: codes, links, numbers</span></div><div><strong>0</strong><span>custom models to train</span></div></div>
+        <div class="rule-search"><label class="sr-only" for="rule-search">Search rules</label><input id="rule-search" type="search" placeholder="Search OTP, KYC, SIM, refund…"><label class="sr-only" for="rule-filter">Filter by severity</label><select id="rule-filter"><option value="all">All signal types</option><option value="high">High risk</option><option value="medium">Caution</option><option value="context">Context</option></select></div>
+        <div id="rule-cards" class="rule-grid"></div>
+        <section class="card rule-method"><h2>How signals combine</h2><p><strong>High-risk request → high-risk warning.</strong> Two caution categories, or a caution category plus a pressure/trust cue, also trigger a high-risk warning. Repeated mentions of the same rule count once. Context cues alone prompt a review.</p><p>A local report is unverified. A sample flagged-number match triggers a demo warning. No result certifies a caller or establishes criminal intent. Speech and phrases outside the selected patterns can be missed.</p></section>
+      </section>
+      <section id="view-about" class="view" hidden>
+        <div class="page-heading"><div><div class="eyebrow">BUILT FOR YOUR VIVA</div><h1>CallGuard, explained.</h1><p>A call-focused banking scam detection prototype.</p></div></div>
+        <div class="about-grid"><section class="card"><h2>The problem</h2><p>A caller can know a customer’s details—even be a real employee—and still make an unsafe request. CallGuard evaluates what the caller asks the customer to do.</p><h3>The pipeline</h3><div class="pipeline"><span>Text / microphone</span><b>↓</b><span>Speaker & clause parsing</span><b>↓</b><span>Rules + recent context + local number check</span><b>↓</b><span>Evidence + recommended action</span></div></section><section class="card"><h2>What works in this version</h2><ul class="feature-list"><li>Editable transcripts and text-file import</li><li>Incremental simulation of 20 call scenarios</li><li>Selected English, Hinglish, and Hindi detection</li><li>Context, negation, speaker, and combination handling</li><li>Local number reports and sample reputation matches</li><li>Optional browser microphone speech recognition</li><li>Downloadable report with raw transcript excluded</li></ul><h3>No custom ML training</h3><p>The detector uses explicit rules. Optional speech-to-text uses your browser’s pretrained recognition service.</p></section><section class="card"><h2>Limits to state clearly</h2><ul class="feature-list"><li>No guarantee of detecting every scam, euphemism, or language.</li><li>No proof of caller identity, employee status, or intent.</li><li>No live reputation feed, bank API, or telecom integration.</li><li>No interception, automatic hang-up, or transaction blocking.</li><li>Audio recordings cannot be uploaded for transcription in this version.</li><li>Microphone support and accuracy depend on the browser. Text input always works.</li><li>Local reports are not independently verified.</li></ul></section><section class="card"><h2>Data & privacy</h2><p>Transcripts are processed in this tab and are not saved by the app. Only numbers you explicitly report and the sample-data preference are saved in this browser. Remove a local report in the watchlist to erase it.</p><p>Microphone mode requires an explicit start and may send speech to your browser vendor’s service. No raw audio is recorded by CallGuard.</p><p>Exported evidence is automatically redacted on a best-effort basis. Review it before sharing.</p><h3>If fraud has occurred</h3><p>Contact your bank immediately through an independently verified channel. In India, use the <a href="https://cybercrime.gov.in/" target="_blank" rel="noopener noreferrer">National Cyber Crime Reporting Portal</a> or call <a href="tel:1930">1930</a>. Report suspicious communications through <a href="https://sancharsaathi.gov.in/sfc/" target="_blank" rel="noopener noreferrer">Chakshu</a>.</p></section></div>
+        <section class="card sources"><h2>Reference material</h2><p>Fraud guidance informs the rules; the thresholds and implementation are project design choices. Reviewed 15 September 2026.</p><div id="source-list"></div></section>
+      </section>
+      <footer class="footer"><span>CallGuard <b>•</b> Banking call safety prototype</span><span>Detection is a warning, not a verdict.</span></footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>

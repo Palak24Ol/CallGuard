@@ -1,0 +1,160 @@
+{
+  "engineVersion": "1.0.0",
+  "runAt": "2026-09-15T05:00:53.926Z",
+  "total": 85248,
+  "matched": 85248,
+  "missed": 0,
+  "seconds": 43,
+  "byRule": {
+    "secret-request": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "card-details": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "safe-account": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "cancel-payment": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "refund-pin": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "qr-receive": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "personal-payee": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "advance-fee": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "remote-access": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "apk-install": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "permissions": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "forwarding": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "sim-swap": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "merge-call": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "account-change": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "payment-approval": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "disable-security": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "phishing-link": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "identity-documents": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "coercion": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "secrecy": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "authority-threat": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "insider-claim": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "investment": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "money-mule": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "recovery-scam": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "forward-sms": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "recovery-secrets": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "atm-withdrawal": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "card-collection": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "biometric-request": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "erase-evidence": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "test-payment": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "loan-diversion": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "login-approval": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "raise-limits": {
+      "total": 2304,
+      "matched": 2304
+    },
+    "credential-link": {
+      "total": 2304,
+      "matched": 2304
+    }
+  },
+  "firstMisses": [],
+  "interpretation": "Synthetic combinations of rule-derived examples. This measures template coverage, not independent real-world accuracy, precision, or recall."
+}

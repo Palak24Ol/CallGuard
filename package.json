@@ -1,0 +1,9 @@
+{
+  "name": "callguard-banking-scam-detection",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Explainable call scam detection prototype with contextual rules and a local number watchlist",
+  "scripts": { "start": "node server.mjs", "test": "node --test tests/*.test.mjs", "check": "node --check dist/app.js && node --check dist/engine.js && node --check dist/catalog.js" },
+  "engines": { "node": ">=20" }
+}
