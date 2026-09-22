@@ -1,3 +1,4 @@
+import { BANK_DIRECTORY, BANK_NUMBERS, DIRECTORY_NOTES, DIRECTORY_REVIEWED_AT, DIRECTORY_REVIEW_DUE, CONTACT_TYPES } from './bank-directory.js';
 import { analyze, RULES, DEMO_NUMBERS, normalizePhone, lookupNumber, exportReport, MAX_TRANSCRIPT } from './engine.js';
 import { SCENARIOS, SOURCES } from './catalog.js';
 import { DIMENSIONS, TOTAL_COMBINATIONS, buildScenario, scenarioAt } from './scenario-lab.js';
@@ -6,6 +7,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const labels = { high: 'High risk', medium: 'Caution', context: 'Context' };
 const STORAGE_KEY = 'callguard-local-reports-v1';
+let workspaceGeneration = 0;
 let reports = [], includeDemo = true, result, timer = null, playbackIndex = 0, activeScenario = null, recognition = null, listening = false, worker = null, lastBatch = null, debounce, toastTimer;
 
 function toast(text) { $('toast').textContent = text; $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 5000); }
@@ -25,7 +27,9 @@ function saveReports(next) {
 function reputationMessage(state) {
   return {
     missing: 'A number check cannot establish caller identity.',
-    invalid: 'Use + and a country code, or a valid 10-digit Indian mobile. Do not include an extension.',
+    invalid: 'Enter a bank service number, Indian mobile, landline with STD prefix, or +country code. Do not include an extension.',
+    official: 'Directory match only. Caller ID may be spoofed; even a real employee can make a fraudulent request.',
+    'official-stale': 'This bank listing is due for review. Recheck its official source. The caller remains unverified.',
     unknown: 'No match in this device’s data. Unlisted does not mean safe.',
     reported: 'Saved on this browser only. Unverified report; caller ID may be spoofed.',
     'demo-flagged': 'Fictional flagged-number match for demonstration only.',
@@ -44,6 +48,7 @@ function renderResult() {
   const rep = result.reputation;
   $('reputation-title').textContent = rep.title;
   $('reputation-detail').textContent = reputationMessage(rep.state);
+  $('bank-match-details').innerHTML = bankMatchDetails(rep);
   $('reputation-strip').classList.toggle('flagged', ['demo-flagged', 'reported'].includes(rep.state));
   $('assessment').dataset.level = result.level;
   $('assessment-heading').textContent = result.label;
@@ -64,14 +69,14 @@ function stopSimulation(announce = false) {
 }
 function stopMic() {
   listening = false;
-  if (recognition) { const r = recognition; recognition = null; r.onend = null; r.stop(); }
+  if (recognition) { const r = recognition; recognition = null; r.onstart = r.onresult = r.onerror = r.onend = null; try { r.abort(); } catch { /* Already stopped. */ } }
   $('mic-start').disabled = false; $('mic-stop').disabled = true;
   $('mic-status').textContent = 'Microphone is off.'; $('interim-text').textContent = '';
 }
 function selectedScenario() { return SCENARIOS.find(s => s.id === $('scenario-select').value) || SCENARIOS[0]; }
 function describeScenario() { const s = selectedScenario(); $('scenario-description').textContent = s.description; $('scenario-label').textContent = s.label; }
 function loadScenario(s, full = true) {
-  stopSimulation(); stopMic(); activeScenario = s;
+  workspaceGeneration++; stopSimulation(); stopMic(); activeScenario = s;
   $('caller-number').value = s.phone;
   $('transcript').value = full ? s.lines.join('\n') : '';
   $('mode-badge').textContent = s.id.startsWith('matrix-') || s.id === 'custom-combination' ? 'Generated transcript' : 'Sample transcript';
@@ -99,7 +104,19 @@ function showView(view) {
   if (view !== 'analyzer') { stopSimulation(); if (listening) stopMic(); }
   if (view === 'watchlist') renderWatchlist();
 }
+function bankMatchDetails(rep) {
+  return (rep.officialMatches || []).map(e => `<p><strong>${esc(e.bank)}</strong> · ${esc(CONTACT_TYPES[e.type])}${e.note ? ' · ' + esc(e.note) : ''}<br><a href="${esc(e.sourceUrl)}" target="_blank" rel="noopener noreferrer">Official source ↗</a> · Reviewed ${esc(e.checkedAt)}${rep.directoryStale ? ' · Review overdue' : ''}</p>`).join('');
+}
+function renderDirectory() {
+  const q = $('bank-search').value.trim().toLowerCase();
+  const digits = q.replace(/[+\s().-]/g, '');
+  const rows = BANK_NUMBERS.filter(e => ($('bank-category').value === 'all' || e.category === $('bank-category').value) && ($('bank-type').value === 'all' || e.type === $('bank-type').value) && (!q || (e.bank + ' ' + e.aliases).toLowerCase().includes(q) || (/^\d+$/.test(digits) && e.number.replace(/\D/g, '').includes(digits))));
+  $('directory-count').textContent = `${new Set(rows.map(e => e.bankId)).size} banks · ${rows.length} numbers`;
+  $('directory-review').textContent = `Sources reviewed ${DIRECTORY_REVIEWED_AT}. Next review due ${DIRECTORY_REVIEW_DUE}.` + (new Date() > new Date(DIRECTORY_REVIEW_DUE + 'T23:59:59Z') ? ' Review overdue — recheck sources before use.' : '');
+  $('bank-table').innerHTML = rows.map(e => `<tr><td>${esc(e.bank)}<small>${esc(e.category)}</small></td><td>${esc(e.number)}</td><td>${esc(CONTACT_TYPES[e.type])}<small>${esc(e.note)}</small></td><td><a href="${esc(e.sourceUrl)}" target="_blank" rel="noopener noreferrer">Official source ↗</a><small>Reviewed ${esc(e.checkedAt)}</small></td></tr>`).join('') || '<tr><td colspan="4">No matching bank contacts. Try another search or filter.</td></tr>';
+}
 function renderWatchlist() {
+  renderDirectory();
   $('include-demo').checked = includeDemo;
   $('watch-count').textContent = `${entries().length} records on this device`;
   $('watch-table').innerHTML = entries().map(r => `<tr><td>${esc(r.number)}<small>${esc(r.label)}</small></td><td><span class="pill ${r.source === 'demo' ? 'neutral' : 'medium'}">${r.source === 'demo' ? 'Fictional sample' : 'Local · unverified'}</span></td><td>${esc(r.reason)}</td><td>${r.source === 'demo' ? 'Demo only' : esc(r.expiresAt)}${r.source !== 'demo' && new Date(r.expiresAt + 'T23:59:59Z') < new Date() ? '<small>Expired</small>' : ''}</td><td>${r.source === 'local' ? `<button class="text-button danger-button" data-remove="${esc(r.number)}" aria-label="Remove local report for ${esc(r.number)}">Remove</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="5">No local records. Add a report or enable the fictional samples.</td></tr>';
@@ -146,6 +163,12 @@ function initLab() {
 }
 function finishWorker() { if (worker) worker.terminate(); worker = null; $('batch-start').disabled = false; $('batch-cancel').disabled = true; }
 
+const bankDetails = document.createElement('div'); bankDetails.id = 'bank-match-details'; bankDetails.className = 'field-help';
+$('reputation-strip').after(bankDetails);
+$('bank-search').oninput = renderDirectory;
+$('bank-category').onchange = renderDirectory;
+$('bank-type').onchange = renderDirectory;
+$('directory-notes').innerHTML = DIRECTORY_NOTES.map(n => `<p><strong>${esc(n.bank)}${n.number ? ' · ' + esc(n.number) : ''}</strong>: ${esc(n.note)} <a href="${esc(n.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source / reference ↗</a></p>`).join('');
 readStorage(); initLab();
 $('scenario-select').innerHTML = SCENARIOS.map(s => `<option value="${s.id}">${esc(s.name)} · ${esc(s.category)}</option>`).join('');
 $('scenario-count').textContent = `${SCENARIOS.length} curated + ${TOTAL_COMBINATIONS.toLocaleString()} generated`;
@@ -156,14 +179,15 @@ window.addEventListener('hashchange', () => showView(location.hash.slice(1)));
 $('analyze').onclick = assess;
 $('transcript').addEventListener('input', () => { stopSimulation(); $('mode-badge').textContent = 'Your transcript'; $('char-count').textContent = `${$('transcript').value.length.toLocaleString()} / 40,000`; clearTimeout(debounce); debounce = setTimeout(assess, 200); });
 $('caller-number').addEventListener('input', assess);
-$('reset').onclick = () => { stopSimulation(); stopMic(); activeScenario = null; $('transcript').value = ''; $('caller-number').value = ''; $('mode-badge').textContent = 'Your transcript'; $('simulation-status').textContent = 'Ready to simulate. No call will be placed.'; assess(); $('transcript').focus(); };
+$('reset').onclick = () => { workspaceGeneration++; stopSimulation(); stopMic(); activeScenario = null; $('transcript').value = ''; $('caller-number').value = ''; $('mode-badge').textContent = 'Your transcript'; $('simulation-status').textContent = 'Ready to simulate. No call will be placed.'; assess(); $('transcript').focus(); };
+$('reset-transcript').onclick = () => $('reset').click();
 $('scenario-select').onchange = () => { stopSimulation(); describeScenario(); };
 $('load-scenario').onclick = () => loadScenario(selectedScenario());
 $('play-scenario').onclick = () => playScenario();
 $('export-report').onclick = () => { assess(); if (!$('transcript').value.trim() && !$('caller-number').value.trim()) { toast('Add a transcript or number before exporting.'); return; } download(exportReport(result), 'callguard-assessment.json'); toast('Report downloaded. Review the redacted evidence before sharing.'); };
 $('import-file').onchange = async e => {
-  const file = e.target.files[0]; if (!file) return;
-  try { if (!file.name.toLowerCase().endsWith('.txt')) throw new Error('Choose a plain text (.txt) transcript.'); if (file.size > 160000) throw new Error('File is too large. Use a transcript of at most 40,000 characters.'); const text = await file.text(); if (text.length > MAX_TRANSCRIPT) throw new Error('Transcript exceeds 40,000 characters. Split it into smaller parts.'); if (text.includes('\u0000')) throw new Error('This file does not look like a plain text transcript.'); stopSimulation(); stopMic(); $('transcript').value = text; $('mode-badge').textContent = 'Imported transcript'; assess(); toast('Transcript imported into this tab.'); }
+  const file = e.target.files[0]; if (!file) return; const generation = ++workspaceGeneration;
+  try { if (!file.name.toLowerCase().endsWith('.txt')) throw new Error('Choose a plain text (.txt) transcript.'); if (file.size > 160000) throw new Error('File is too large. Use a transcript of at most 40,000 characters.'); const text = await file.text(); if (generation !== workspaceGeneration) return; if (text.length > MAX_TRANSCRIPT) throw new Error('Transcript exceeds 40,000 characters. Split it into smaller parts.'); if (text.includes('\u0000')) throw new Error('This file does not look like a plain text transcript.'); stopSimulation(); stopMic(); $('transcript').value = text; $('mode-badge').textContent = 'Imported transcript'; assess(); toast('Transcript imported into this tab.'); }
   catch (err) { error(err.message); } finally { e.target.value = ''; }
 };
 $('mic-open').onclick = () => { $('mic-panel').hidden = !$('mic-panel').hidden; if ($('mic-panel').hidden && listening) stopMic(); };
@@ -193,7 +217,7 @@ $('mic-start').onclick = () => {
 };
 document.addEventListener('visibilitychange', () => { if (document.hidden && listening) stopMic(); });
 window.addEventListener('pagehide', () => { stopSimulation(); if (listening) stopMic(); if (worker) worker.terminate(); });
-$('lookup-form').onsubmit = e => { e.preventDefault(); const r = lookupNumber($('lookup-phone').value, entries()); $('lookup-result').innerHTML = `<strong>${esc(r.title)}</strong><p>${esc(reputationMessage(r.state))}</p>${r.entries.map(x => `<p>${esc(x.label)} — ${esc(x.reason)}</p>`).join('')}`; };
+$('lookup-form').onsubmit = e => { e.preventDefault(); const r = lookupNumber($('lookup-phone').value, entries()); $('lookup-result').innerHTML = `<strong>${esc(r.title)}</strong><p>${esc(reputationMessage(r.state))}</p>${r.entries.filter(x => x.source !== 'official').map(x => `<p>${esc(x.label)} — ${esc(x.reason)}</p>`).join('')}${bankMatchDetails(r)}`; };
 $('include-demo').onchange = e => { includeDemo = e.target.checked; try { localStorage.setItem('callguard-include-demo', String(includeDemo)); } catch { toast('This preference cannot be saved in this browser.'); } renderWatchlist(); assess(); $('lookup-result').textContent = 'Data selection changed. Check the number again.'; };
 $('report-form').onsubmit = e => {
   e.preventDefault(); const number = normalizePhone($('report-phone').value);

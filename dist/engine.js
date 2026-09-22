@@ -1,6 +1,7 @@
+import { BANK_NUMBERS } from './bank-directory.js';
 // Rules are deliberately explicit and inspectable. This is a risk-warning system,
 // not an identity verifier, statistical probability model, or banking control.
-export const ENGINE_VERSION = '1.0.0';
+export const ENGINE_VERSION = '1.1.0';
 export const MAX_TRANSCRIPT = 40000;
 const regexCache = new Map();
 const re = p => { if (!regexCache.has(p)) regexCache.set(p, new RegExp(p, 'iu')); return regexCache.get(p); };
@@ -53,8 +54,186 @@ export const RULES = [
 ];
 
 export const DEMO_NUMBERS = [
-  { number: '+12025550101', label: 'Sample: reported impersonation', source: 'demo', status: 'flagged', reason: 'Fictional example for a flagged-number test. Not a live intelligence record.', updatedAt: '2026-09-15', expiresAt: '2099-01-01' },
-  { number: '+12025550102', label: 'Sample: reported refund scam', source: 'demo', status: 'flagged', reason: 'Fictional example for a refund-call test. Not a live intelligence record.', updatedAt: '2026-09-15', expiresAt: '2099-01-01' }
+  {
+    "number": "+12025550101",
+    "label": "Sample: OTP theft",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional otp theft scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550102",
+    "label": "Sample: Refund scam",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional refund scam scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550103",
+    "label": "Sample: Fake KYC",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional fake kyc scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550104",
+    "label": "Sample: Remote access",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional remote access scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550105",
+    "label": "Sample: Safe-account transfer",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional safe-account transfer scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550106",
+    "label": "Sample: Digital arrest",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional digital arrest scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550107",
+    "label": "Sample: SIM swap",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional sim swap scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550108",
+    "label": "Sample: Call forwarding",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional call forwarding scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550109",
+    "label": "Sample: UPI collect request",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional upi collect request scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550110",
+    "label": "Sample: QR refund",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional qr refund scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550111",
+    "label": "Sample: Fake loan fee",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional fake loan fee scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550112",
+    "label": "Sample: Reward redemption",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional reward redemption scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550113",
+    "label": "Sample: APK installation",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional apk installation scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550114",
+    "label": "Sample: Screen sharing",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional screen sharing scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550115",
+    "label": "Sample: Card detail theft",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional card detail theft scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550116",
+    "label": "Sample: Money mule recruitment",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional money mule recruitment scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550117",
+    "label": "Sample: Fake investment",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional fake investment scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550118",
+    "label": "Sample: Account recovery takeover",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional account recovery takeover scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550119",
+    "label": "Sample: Fraud recovery fee",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional fraud recovery fee scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  },
+  {
+    "number": "+12025550120",
+    "label": "Sample: Payment cancellation scam",
+    "source": "demo",
+    "status": "flagged",
+    "reason": "Fictional payment cancellation scam scenario. Reserved example number; not a real scam intelligence record.",
+    "updatedAt": "2026-09-22",
+    "expiresAt": "2099-01-01"
+  }
 ];
 
 export function normalizePhone(input) {
@@ -63,6 +242,12 @@ export function normalizePhone(input) {
   if (!/^[+\d\s().-]+$/.test(n)) return null;
   n = n.replace(/[\s().-]/g, '');
   if (n.startsWith('00')) n = '+' + n.slice(2);
+  // Service numbers stay in national form; a prefix alone never grants trust.
+  const service = /^(?:1800\d{4,9}|1860\d{7}|1600\d{6}|140\d{7}|155299)$/;
+  if (service.test(n)) return n;
+  if (n.startsWith('+91') && service.test(n.slice(3))) return n.slice(3);
+  if (n.startsWith('91') && service.test(n.slice(2))) return n.slice(2);
+  if (/^0[1-9]\d{9}$/.test(n)) return '+91' + n.slice(1);
   if (/^0[6-9]\d{9}$/.test(n)) n = '+91' + n.slice(1);
   else if (/^[6-9]\d{9}$/.test(n)) n = '+91' + n;
   else if (/^91[6-9]\d{9}$/.test(n)) n = '+' + n;
@@ -70,15 +255,22 @@ export function normalizePhone(input) {
 }
 
 export function lookupNumber(input, entries = [], now = new Date()) {
-  if (!String(input || '').trim()) return { state: 'missing', title: 'Number not provided', entries: [] };
+  if (!String(input || '').trim()) return { state: 'missing', title: 'Number not provided', entries: [], officialMatches: [] };
   const number = normalizePhone(input);
-  if (!number) return { state: 'invalid', title: 'Check the number format', entries: [] };
-  const found = entries.filter(e => normalizePhone(e.number) === number);
-  if (!found.length) return { state: 'unknown', title: 'No local record', number, entries: [] };
-  const active = found.filter(e => !e.expiresAt || new Date(e.expiresAt + 'T23:59:59Z') >= now);
-  if (!active.length) return { state: 'stale', title: 'Expired local report', number, entries: found };
-  const demo = active.some(e => e.source === 'demo');
-  return { state: demo ? 'demo-flagged' : 'reported', title: demo ? 'Flagged in sample data' : 'Locally reported · unverified', number, entries: active };
+  if (!number) return { state: 'invalid', title: 'Check the number format', entries: [], officialMatches: [] };
+  const officialMatches = BANK_NUMBERS.filter(e => normalizePhone(e.number) === number);
+  const fresh = e => new Date(e.expiresAt + 'T23:59:59Z') >= now;
+  const found = entries.filter(e => e.source !== 'official' && normalizePhone(e.number) === number);
+  const base = { number, officialMatches, directoryStale: officialMatches.length > 0 && !officialMatches.some(fresh) };
+  // Reports take precedence over a directory match. Matches never lower call risk.
+  if (found.length) {
+    const active = found.filter(e => !e.expiresAt || fresh(e));
+    if (!active.length) return { ...base, state: 'stale', title: 'Expired local report', entries: found };
+    const demo = active.some(e => e.source === 'demo');
+    return { ...base, state: demo ? 'demo-flagged' : 'reported', title: demo ? 'Flagged in sample data' : 'Locally reported · unverified', entries: active };
+  }
+  if (officialMatches.length) return { ...base, state: base.directoryStale ? 'official-stale' : 'official', title: base.directoryStale ? 'Bank directory match · review overdue' : 'Matches an officially listed bank number', entries: officialMatches };
+  return { ...base, state: 'unknown', title: 'No directory or local record', entries: [] };
 }
 
 export function redact(text) {
@@ -176,7 +368,7 @@ export function analyze({ transcript = '', phone = '', entries = [], now } = {})
     reputation, callerClauses: caller.length,
     coverage: !caller.length ? 'No caller speech to assess.' : 'English, selected Hinglish and Hindi patterns. Unknown wording, transcription errors, and missing context can hide scams.',
     nextStep: level === 'high' ? 'Stop the requested action. End the call and independently contact your bank.' : level === 'caution' ? 'Pause before sharing information, changing settings, or making a payment. Verify with your bank.' : 'This result does not establish safety. Keep banking secrets private and verify unexpected requests.',
-    limitations: ['No listed warning does not mean safe.', 'A caller’s identity or honesty cannot be proved from this call.', 'Number data is sample or local-only; no live intelligence provider is connected.', 'Warnings cannot block phone calls or bank transactions.']
+    limitations: ['No listed warning does not mean safe.', 'A caller’s identity or honesty cannot be proved from this call.', 'Number data includes an official-source snapshot, fictional samples and local reports; no live intelligence provider is connected.', 'Warnings cannot block phone calls or bank transactions.']
   };
 }
 
@@ -185,6 +377,8 @@ export function exportReport(result) {
     project: 'CallGuard', generatedAt: new Date().toISOString(), engineVersion: result.engineVersion,
     risk: result.label, callerNumber: result.reputation.number ? '••••' + result.reputation.number.slice(-4) : null,
     numberStatus: result.reputation.state, combination: result.combination,
+    bankMatches: (result.reputation.officialMatches || []).map(e => ({ bank: e.bank, type: e.type, sourceUrl: e.sourceUrl, checkedAt: e.checkedAt, reviewDue: e.reviewDue })),
+    bankDirectoryReviewOverdue: result.reputation.directoryStale || false,
     findings: result.findings.map(f => ({ rule: f.id, title: f.title, severity: f.severity, reason: f.description, evidence: redact(f.evidence), line: f.line, recommendedAction: f.advice })),
     nextStep: result.nextStep, limitations: result.limitations,
     privacy: 'Raw transcript excluded. Evidence is automatically redacted on a best-effort basis; review before sharing.'
