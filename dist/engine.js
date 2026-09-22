@@ -1,7 +1,7 @@
 import { BANK_NUMBERS } from './bank-directory.js';
 // Rules are deliberately explicit and inspectable. This is a risk-warning system,
 // not an identity verifier, statistical probability model, or banking control.
-export const ENGINE_VERSION = '1.1.0';
+export const ENGINE_VERSION = '1.1.1';
 export const MAX_TRANSCRIPT = 40000;
 const regexCache = new Map();
 const re = p => { if (!regexCache.has(p)) regexCache.set(p, new RegExp(p, 'iu')); return regexCache.get(p); };
@@ -12,6 +12,18 @@ const action = t => has(t, 'please|you (?:must|need|have to|should)|transfer|sen
 const secret = t => has(t, '\\botp\\b|one[ -]time (?:pass|code)|\\bpin\\b|\\bcvv\\b|password|passcode|verification code|security code|transaction code|ओटीपी|ओ टी पी|पिन|पासवर्ड|सीवीवी');
 const money = t => has(t, 'transfer|send|pay|move|deposit|payment|paisa|paise|bhej|भुगतान|पैसे|ट्रांसफर|जमा');
 const make = (id, title, category, severity, description, advice, patterns, examples, opts = {}) => ({ id, title, category, severity, description, advice, examples, ...opts, match: typeof patterns === 'function' ? patterns : t => any(t, patterns) });
+
+
+// An unverified link is a reason to pause, not proof that its destination is malicious.
+function callerSuppliedLink(t) {
+  const link = /\b(?:link|url|website|webpage)\b|लिंक|लिन्क|वेबसाइट/iu;
+  const address = /\b(?:https?:\/\/|www\.)\S+|\b[a-z0-9][a-z0-9-]*\.(?:com|in|org|net|co|io|app|bank|example)(?:\/\S*)?\b/iu;
+  // Keep ordinary link-safety advice out of this warning.
+  const safety = /\b(?:do not|don't|dont|never|avoid)\s+(?:ever\s+)?(?:open|click|follow|visit|send|use|trust)\b|\b(?:won't|will not|not sending)\b|\b(?:mat|nahi|nahin)\s+(?:khol|click|bhej)|\b(?:open|click|khol\w*)\s+(?:mat|nahi|nahin)\b|मत\s*(?:खोल|क्लिक|भेज)|(?:खोल|भेज)\S*\s*नहीं/iu;
+  if (safety.test(t)) return false;
+  const deliveryOrAction = /\b(?:send|sending|sent|share|sharing|shared|receive|received|texted|messaged|click|open|visit|follow|tap|use|go|here)\b|\b(?:bhej\w*|bhej\s+\w+|kholo|kholiye|kholna|khol|jaakar|jakar|jaake|jake|jaiye|jao|gaya|gayi|milega)\b|भेज|खोल|क्लिक|जाकर|जाइए|दबा|मिलेगा/iu;
+  return address.test(t) || (link.test(t) && deliveryOrAction.test(t));
+}
 
 export const RULES = [
   make('secret-request', 'Secret banking information requested', 'Credentials', 'high', 'A caller asks you to disclose an OTP, PIN, CVV, password, or verification code.', 'Do not reveal the secret. End the call and contact your bank independently.', t => request(t) && secret(t), ['Tell me the OTP to cancel the transaction.', 'Apna OTP batao, main bank se hoon.']),
@@ -31,7 +43,7 @@ export const RULES = [
   make('account-change', 'Account recovery or contact changes requested', 'Account takeover', 'medium', 'The caller directs changes to a password, registered phone/email, recovery code, or beneficiary.', 'Open your bank app independently and verify why the change is needed.', t => has(t, 'change|replace|reset|add|update|बदल') && has(t, 'registered (?:mobile|phone|email)|recovery (?:code|email|phone)|password|beneficiary|payee|पंजीकृत'), ['Change your registered email to the address I give you.', 'Add this beneficiary for account verification.']),
   make('payment-approval', 'Unsolicited payment approval instruction', 'Payments', 'medium', 'The caller asks you to approve a collect request, payment prompt, or recurring mandate.', 'Read the amount, beneficiary, direction, and mandate details yourself before doing anything.', t => has(t, 'approve|accept|authorize|authorise|स्वीकार') && has(t, 'collect request|payment request|mandate|autopay|payment prompt|debit request'), ['Approve the payment request I just sent.', 'Accept the autopay mandate now.']),
   make('disable-security', 'Security controls disabled', 'Device access', 'high', 'The caller asks you to disable protection, alerts, or two-factor authentication.', 'Keep security protections enabled and end the call.', t => has(t, 'disable|turn off|deactivate|ignore|band kar|बंद') && has(t, 'antivirus|play protect|security warning|fraud warning|transaction alerts|two[ -]factor|2fa|sms alerts|सुरक्षा'), ['Turn off Play Protect to continue.', 'Ignore the fraud warning in your bank app.']),
-  make('phishing-link', 'Banking or KYC through a caller-supplied link', 'Links & identity', 'medium', 'The caller instructs you to open a supplied link for banking, credentials, or KYC.', 'Open your bank’s official app yourself; do not use the caller’s link.', t => has(t, 'click|open|visit|follow|खोल|क्लिक') && has(t, 'link|https?://|लिंक') && has(t, 'kyc|bank|login|log in|verify|verification|card|केवाईसी|बैंक'), ['Click the link I sent to update your bank KYC.', 'Open https://bank-login.example to verify your card.']),
+  make('phishing-link', 'Caller-supplied link · pause before opening', 'Links & identity', 'medium', 'The caller sends, offers, or asks you to use a link. Its destination and purpose have not been independently verified; this alone does not prove fraud.', 'Pause this activity. Do not open the link or enter information until independently verified. Open the organisation’s official app yourself or contact it using a number you already trust, not details supplied by the caller.', callerSuppliedLink, ['I will send you a link for the appointment.', 'Main aapko ek link bhejungi, us link par jaakar KYC update kar lijiyega.', 'मैं आपको एक लिंक भेजूंगी, उसे खोलिए।']),
   make('identity-documents', 'Identity documents requested on a personal channel', 'Links & identity', 'medium', 'The caller asks to send Aadhaar, PAN, identity documents, or a selfie through WhatsApp or a personal channel.', 'Verify the document request and use an official bank submission channel.', t => request(t) && has(t, 'aadhaar|aadhar|\\bpan\\b|passport|selfie|identity document|आधार|पैन') && has(t, 'whatsapp|personal|telegram|my email|व्हाट्सएप'), ['Send your Aadhaar and selfie to my WhatsApp.', 'Share your PAN on my personal email.']),
   make('coercion', 'Threat or artificial deadline', 'Pressure tactics', 'context', 'The caller threatens account closure, arrest, or penalties, or imposes a very short deadline.', 'Pause. Urgency does not prove a request is legitimate.', t => has(t, '(?:account|card|kyc|sim).{0,55}(?:block|suspend|clos|freez|deactivat)|(?:block|suspend|freez).{0,35}(?:account|card)|within (?:\\d+|two|five|ten) minutes|immediately or|last chance|arrest warrant|अकाउंट.*बंद|खाता.*बंद|तुरंत|abhi nahi.*band'), ['Your account will be blocked within two minutes.', 'Act immediately or we will freeze your account.']),
   make('secrecy', 'Caller discourages independent verification', 'Pressure tactics', 'context', 'The caller tells you to keep the request secret, stay on the line, or avoid the bank or family.', 'End the call and independently contact your bank or someone you trust.', t => has(t, '(?:do not|don.t|never|must not|cannot).{0,30}(?:hang up|disconnect|tell (?:anyone|your family|the bank)|contact (?:your |the )?(?:bank|branch)|call (?:your |the )?(?:bank|branch|customer care))|keep (?:this|it) (?:secret|confidential)|kisi ko mat bata|call mat kaat|किसी को मत बता|कॉल मत काट'), ['Do not disconnect or contact your branch.', 'Kisi ko mat batana, call mat kaatna.'], { keepNegation: true }),
@@ -357,7 +369,8 @@ export function analyze({ transcript = '', phone = '', entries = [], now } = {})
   const reputation = lookupNumber(phone, entries, now);
   if (['demo-flagged', 'reported', 'stale'].includes(reputation.state)) add({ id: 'number-reputation', title: reputation.title, category: 'Number reputation', severity: reputation.state === 'demo-flagged' ? 'high' : 'medium', description: reputation.state === 'demo-flagged' ? 'This number matches fictional flagged data used only for demonstrations.' : 'A device-local report is a reason to verify, not proof of the caller’s identity or guilt.', advice: 'Verify independently. Caller IDs can be spoofed, and local reports may be wrong or outdated.' }, reputation.entries.map(e => e.label).join('; '));
   const high = findings.filter(f => f.severity === 'high').length;
-  const medium = findings.filter(f => f.severity === 'medium').length;
+  // Several checks on the same link are one caution category, not independent corroboration.
+  const medium = new Set(findings.filter(f => f.severity === 'medium').map(f => f.category)).size;
   const context = findings.filter(f => f.severity === 'context').length;
   const combined = !high && ((medium >= 2) || (medium >= 1 && context >= 1));
   const level = high || combined ? 'high' : medium ? 'caution' : context ? 'review' : 'unverified';
@@ -367,7 +380,7 @@ export function analyze({ transcript = '', phone = '', entries = [], now } = {})
     combination: combined ? 'Multiple independent warning categories appeared together. Treat the request as high risk until independently verified.' : null,
     reputation, callerClauses: caller.length,
     coverage: !caller.length ? 'No caller speech to assess.' : 'English, selected Hinglish and Hindi patterns. Unknown wording, transcription errors, and missing context can hide scams.',
-    nextStep: level === 'high' ? 'Stop the requested action. End the call and independently contact your bank.' : level === 'caution' ? 'Pause before sharing information, changing settings, or making a payment. Verify with your bank.' : 'This result does not establish safety. Keep banking secrets private and verify unexpected requests.',
+    nextStep: level === 'high' ? 'Stop the requested action. End the call and independently contact your bank.' : level === 'caution' ? (seen.has('phishing-link') ? 'Pause this activity. Do not open the caller’s link until independently verified. Use the official app or a contact you already trust.' : 'Pause before sharing information, changing settings, or making a payment. Verify with your bank.') : 'This result does not establish safety. Keep banking secrets private and verify unexpected requests.',
     limitations: ['No listed warning does not mean safe.', 'A caller’s identity or honesty cannot be proved from this call.', 'Number data includes an official-source snapshot, fictional samples and local reports; no live intelligence provider is connected.', 'Warnings cannot block phone calls or bank transactions.']
   };
 }
